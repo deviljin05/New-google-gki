@@ -43,8 +43,10 @@ jobs:
             python3 rsync cpio unzip \
             zip pahole
 
-      - name: Add swap
+      - name: Increase swap
         run: |
+          sudo swapoff -a || true
+          sudo rm -f /swapfile
           sudo fallocate -l 8G /swapfile
           sudo chmod 600 /swapfile
           sudo mkswap /swapfile
