@@ -28,3 +28,10 @@ jobs:
         run: |
           cd kernel
           repo sync -c -j4
+
+      - name: Show source layout
+        run: |
+          cd kernel
+          pwd
+          ls
+          find build -maxdepth 2
