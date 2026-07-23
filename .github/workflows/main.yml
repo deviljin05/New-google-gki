@@ -58,14 +58,11 @@ jobs:
           cd kernel
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s stable
 
-      - name: Apply SUSFS v2.2.0
+      - name: Check SUSFS branches
         run: |
-          cd kernel
-          git clone https://github.com/WildKernels/GKI_KernelSU_SUSFS.git susfs
+          git clone --depth=1 https://github.com/WildKernels/GKI_KernelSU_SUSFS.git susfs
           cd susfs
-          git checkout gki-android12-5.10
-          cd ..
-          bash susfs/kernel/setup.sh
+          git branch -a
 
       - name: Build GKI Kernel
         run: |
