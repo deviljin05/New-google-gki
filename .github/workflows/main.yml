@@ -58,6 +58,12 @@ jobs:
           cd kernel
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s stable
 
+      - name: Check KernelSU integration
+        run: |
+          cd kernel
+          ls
+          find . -maxdepth 3 -iname "*kernelsu*" | head -50
+
       - name: Build GKI Kernel
         run: |
           cd kernel
