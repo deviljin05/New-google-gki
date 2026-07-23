@@ -28,9 +28,3 @@ jobs:
         run: |
           cd kernel
           repo sync -c -j4
-
-      - name: Upload Source List
-        uses: actions/upload-artifact@v4
-        with:
-          name: google-gki
-          path: kernel
