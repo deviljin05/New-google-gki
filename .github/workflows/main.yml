@@ -58,11 +58,12 @@ jobs:
           cd kernel
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s stable
 
-      - name: Check SUSFS branches
+      - name: Check SUSFS structure
         run: |
           git clone --depth=1 https://github.com/WildKernels/GKI_KernelSU_SUSFS.git susfs
           cd susfs
-          git branch -a
+          ls -la
+          find . -maxdepth 2 -type f | sort | head -100
 
       - name: Build GKI Kernel
         run: |
