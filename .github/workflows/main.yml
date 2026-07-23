@@ -62,16 +62,21 @@ jobs:
         run: |
           cd kernel
 
-          git clone https://github.com/sidex15/susfs4ksu.git susfs
+          git clone --depth=1 -b gki-android12-5.10 https://gitlab.com/simonpunk/susfs4ksu.git susfs
 
-          cd susfs
-          git checkout 8c6faae
+          cp susfs/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch KernelSU/
 
-          cd ..
-          cp -r susfs/fs/* fs/
-          cp -r susfs/include/* include/
+          cp susfs/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch common/
 
-          echo "SUSFS applied"
+          cp susfs/kernel_patches/fs/* common/fs/
+
+          cp susfs/kernel_patches/include/linux/* common/include/linux/
+
+          cd KernelSU
+          patch -p1 < 10_enable_susfs_for_ksu.patch
+
+          cd ../common
+          patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
 
       - name: Build GKI Kernel
         run: |
