@@ -71,18 +71,13 @@ jobs:
           cd kernel
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s stable
 
-      - name: Check KernelSU location
-        run: |
-          cd kernel
-          find . -type d -name "KernelSU"
-
       - name: Apply SUSFS 2.2.0
         run: |
           cd kernel
 
           git clone --depth=1 -b gki-android12-5.10 https://gitlab.com/simonpunk/susfs4ksu.git susfs
 
-          cp susfs/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch KernelSU/
+          cp susfs/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch common/KernelSU/
 
           cp susfs/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch common/
 
@@ -90,10 +85,10 @@ jobs:
 
           cp susfs/kernel_patches/include/linux/* common/include/linux/
 
-          cd KernelSU
+          cd common/KernelSU
           patch -p1 < 10_enable_susfs_for_ksu.patch
 
-          cd ../common
+          cd ../
           patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
 
       - name: Brand Infinity X Kernel
