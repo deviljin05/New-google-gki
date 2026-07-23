@@ -82,7 +82,7 @@ jobs:
 
           git clone --depth=1 -b gki-android12-5.10 https://gitlab.com/simonpunk/susfs4ksu.git susfs
 
-          cp susfs/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch common/KernelSU/
+          cp susfs/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch KernelSU-Next/
 
           cp susfs/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch common/
 
@@ -90,7 +90,7 @@ jobs:
 
           cp susfs/kernel_patches/include/linux/* common/include/linux/
 
-          cd common/KernelSU
+          cd KernelSU-Next
           patch -p1 < 10_enable_susfs_for_ksu.patch
 
           cd ../
