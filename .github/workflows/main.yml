@@ -29,9 +29,7 @@ jobs:
           cd kernel
           repo sync -c -j4
 
-      - name: Show source layout
+      - name: Check build config
         run: |
           cd kernel
-          pwd
-          ls
-          find build -maxdepth 2
+          find common -name "build.config*" | sort
