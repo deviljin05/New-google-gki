@@ -91,6 +91,20 @@ jobs:
           cd ../common
           patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
 
+      - name: Brand Infinity X Kernel
+        run: |
+          cd kernel/common
+
+          # Version bump
+          sed -i 's/^SUBLEVEL = .*/SUBLEVEL = 260/' Makefile
+
+          # Local version
+          echo "-InfinityX" > localversion
+
+          echo "Kernel branding completed"
+          grep SUBLEVEL Makefile
+          cat localversion
+
       - name: Build GKI Kernel
         run: |
           cd kernel
