@@ -53,6 +53,11 @@ jobs:
           sudo swapon /swapfile
           free -h
 
+      - name: Integrate KernelSU Next
+        run: |
+          cd kernel
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s stable
+
       - name: Build GKI Kernel
         run: |
           cd kernel
