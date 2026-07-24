@@ -87,36 +87,10 @@ jobs:
           cd kernel
           ls kernel
 
-      - name: Download and Apply BBRv3 Backport Patch
+      - name: Apply BBRv3 patch
         run: |
-          # 1. Navigate to the core kernel directory containing the network stack
-          # (Adjust 'common' to your specific source tree root directory name if different)
-          cd common
-          
-          # 2. Download a community-verified, conflict-resolved BBR/BBRv3 network stack patch for Linux 5.10
-          curl -Lo bbr_5.10.patch https://githubusercontent.com
-          
-          # 3. Apply the patch using the standard patch tool. 
-          # This bypasses Git's interactive conflict prompt, safely applying changes to tcp_input.c, tcp.h, etc.
-          patch -p1 < bbr_5.10.patch
-          
-          # 4. Remove the temporary patch file so it doesn't leave uncommitted clutter in the build root
-          rm bbr_5.10.patch
-
-      - name: Inject BBR Configurations into GKI Defconfig
-        run: |
-          # Define the target path to the standard GKI arm64 defconfig file
-          DEFCONFIG_PATH="common/arch/arm64/configs/gki_defconfig"
-          
-          # Append the configuration parameters to compile and enable BBR by default
-          echo "CONFIG_TCP_CONG_BBR=y" >> $DEFCONFIG_PATH
-          echo "CONFIG_DEFAULT_BBR=y" >> $DEFCONFIG_PATH
-          
-          # Crucial dependency: BBR relies on the Fair Queue (FQ) packet scheduler to manage pacing
-          echo "CONFIG_NET_SCH_FQ=y" >> $DEFCONFIG_PATH
-          
-          # Verify in the runner logs that the lines were successfully added
-          tail -n 5 $DEFCONFIG_PATH
+          cd kernel/common
+          patch -p1 < ../../patches/0001-net-tcp-backport-BBRv3-to-android12-5.10.patch
           
       - name: Brand Infinity X Kernel
         run: |
