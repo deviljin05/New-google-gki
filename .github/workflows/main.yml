@@ -82,6 +82,11 @@ jobs:
            ls
            ls kernel
 
+      - name: Check kernel files
+        run: |
+          cd kernel
+          ls kernel
+
       - name: Apply SUSFS
         run: |
          cd kernel
