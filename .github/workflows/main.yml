@@ -8,21 +8,20 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y git repo python3 curl
+          sudo apt install -y \
+            git repo python3 curl \
+            bc bison flex build-essential \
+            libssl-dev libelf-dev \
+            rsync cpio unzip zip pahole
 
       - name: Configure Git
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-
-      - name: Init Google GKI
-        run: |
-          mkdir kernel
-          cd kernel
-          repo init -u https://android.googlesource.com/kernel/manifest -b common-android12-5.10-2026-07
 
       - name: Free disk space
         run: |
@@ -32,29 +31,18 @@ jobs:
           docker system prune -af || true
           df -h
 
+      - name: Init Google GKI
+        run: |
+          mkdir kernel
+          cd kernel
+          repo init \
+            -u https://android.googlesource.com/kernel/manifest \
+            -b common-android12-5.10-2026-07
+
       - name: Repo Sync
         run: |
           cd kernel
           repo sync -c -j4
-
-      - name: Check build config
-        run: |
-          cd kernel
-          find common -name "build.config*" | sort
-
-      - name: Install build dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y \
-            bc bison flex build-essential \
-            libssl-dev libelf-dev \
-            python3 rsync cpio unzip \
-            zip pahole
-
-      - name: Show disk usage
-        run: |
-          df -h
-          free -h
 
       - name: Increase swap
         run: |
@@ -66,64 +54,81 @@ jobs:
           sudo swapon /swapfile
           free -h
 
+
+      # ==========================
+      # KernelSU Next
+      # ==========================
+
       - name: Integrate KernelSU Next
         run: |
           cd kernel
-          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s stable
+          curl -LSs \
+          https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh \
+          | bash -s stable
+
+
+      # ==========================
+      # SUSFS
+      # ==========================
 
       - name: Clone SUSFS
         run: |
           cd kernel
-          git clone -b gki-android12-5.10 https://gitlab.com/simonpunk/susfs4ksu.git
 
-      - name: Copy SUSFS files
+          git clone --depth=1 \
+          -b gki-android12-5.10 \
+          https://gitlab.com/simonpunk/susfs4ksu \
+          susfs
+
+
+      - name: Apply SUSFS
         run: |
-          cd kernel
+          cd kernel/common
 
-          cp susfs4ksu/kernel_patches/fs/susfs.c common/fs/
-          cp susfs4ksu/kernel_patches/include/linux/susfs.h common/include/linux/
-          cp susfs4ksu/kernel_patches/include/linux/susfs_def.h common/include/linux/
+          SUSFS_PATCHES=../susfs/kernel_patches
 
-      - name: Apply SUSFS GKI patch
-        run: |
-           cd kernel/common
+          cp -R "$SUSFS_PATCHES"/fs/* ./fs
+          cp -R "$SUSFS_PATCHES"/include/* ./include
 
-           patch -p1 < ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch
-          
-      - name: Find KernelSU
-        run: |
-           cd kernel
-           find . -type d -iname "*KernelSU*"
 
-      - name: Show tree
-        run: |
-           pwd
-           ls
-           ls kernel
+          patch -p1 \
+          < "$SUSFS_PATCHES"/50_add_susfs_in_gki-android12-5.10.patch
 
-      - name: Check kernel files
-        run: |
-          cd kernel
-          ls kernel
+
+          patch -p1 \
+          < "$SUSFS_PATCHES"/KernelSU/10_enable_susfs_for_ksu.patch
+
+
+
+      # ==========================
+      # Branding
+      # ==========================
 
       - name: Brand Infinity X Kernel
         run: |
           cd kernel/common
 
-          # Version bump
-          sed -i 's/^SUBLEVEL = .*/SUBLEVEL = 260/' Makefile
+          sed -i \
+          's/^SUBLEVEL = .*/SUBLEVEL = 260/' Makefile
 
-          # Local version
           echo "-InfinityX" > localversion
 
-          echo "Kernel branding completed"
-          grep SUBLEVEL Makefile
-          cat localversion
+
+      # ==========================
+      # Build
+      # ==========================
 
       - name: Build GKI Kernel
         run: |
           cd kernel
-          BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh -j2
+
+          BUILD_CONFIG=common/build.config.gki.aarch64 \
+          build/build.sh -j2
+
+
+      # ==========================
+      # Output
+      # ==========================
 
       - name: Upload Kernel Image
         uses: actions/upload-artifact@v4
