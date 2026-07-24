@@ -71,6 +71,12 @@ jobs:
           cd kernel
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s stable
 
+      - name: Apply SUSFS patches
+        run: |
+          cd kernel/common
+          patch -p1 < ../../patches/susfs/50_add_susfs_in_kernel-5.10.patch
+          patch -p1 < ../../patches/susfs/10_enable_susfs_for_ksu.patch
+
       - name: Find KernelSU
         run: |
            cd kernel
