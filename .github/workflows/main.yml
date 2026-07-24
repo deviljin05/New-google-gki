@@ -87,16 +87,6 @@ jobs:
           cd kernel
           ls kernel
 
-      - name: Check patches
-        run: |
-          ls -la
-          ls -la patches
-
-      - name: Apply BBRv3 patch
-        run: |
-          cd kernel/common
-          patch -p1 < ../../patches/0001-net-tcp-backport-BBRv3-to-android12-5.10.patch
-          
       - name: Brand Infinity X Kernel
         run: |
           cd kernel/common
