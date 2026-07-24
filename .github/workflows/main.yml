@@ -89,12 +89,6 @@ jobs:
            cd kernel/common
 
            patch -p1 < ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch
-
-      - name: Enable SUSFS config
-        run: |
-          cd kernel/common
-
-          echo "CONFIG_SUSFS=y" >> arch/arm64/configs/gki_defconfig
           
       - name: Find KernelSU
         run: |
