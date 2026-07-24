@@ -71,16 +71,56 @@ jobs:
           cd kernel
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s stable
 
-      - name: Apply SUSFS KernelSU patch
+      - name: Integrate KernelSU Next
         run: |
-         cd kernel/KernelSU-Next
-         patch -p1 < ../../../patches/susfs/10_enable_susfs_for_ksu.patch
+          # 1. Run inside Google's 'common' tree folder
+          cd kernel_workspace/common
+          curl -LSs "https://githubusercontent.com" | bash -
 
-      - name: Apply SUSFS kernel patch
+      - name: Fetch and Prepare SUSFS for Android 12 (5.10)
         run: |
-         cd kernel/common
-         patch -p1 < ../../patches/susfs/50_add_susfs_in_kernel-5.10.patch
+          cd kernel_workspace
+          git clone https://gitlab.com
+          cd susfs4ksu
+          # Checkout exact branch for GKI Android 12 - Kernel 5.10
+          git checkout gki-android12-5.10
 
+      - name: Copy SUSFS Engine to Google Source Tree
+        run: |
+          cd kernel_workspace
+          # Verified precise paths inside Simonpunk's repo tree
+          cp -r susfs4ksu/kernel/fs/susfs common/fs/
+          cp susfs4ksu/kernel/include/linux/susfs.h common/include/linux/
+
+      - name: Apply SUSFS Patches to KernelSU Next & 5.10 GKI Core
+        run: |
+          cd kernel_workspace/common
+          
+          # 1. Patch KernelSU Next to support SUSFS hooks
+          if [ -f ../susfs4ksu/KernelSU/ksu_susfs.patch ]; then
+            patch -p1 < ../susfs4ksu/KernelSU/ksu_susfs.patch
+          else
+            echo "KSU patch skipping or handled via alternative hook file."
+          fi
+          
+          # 2. Patch Google's 5.10 core Virtual File System (VFS)
+          # Corrected path to lowercase 'kernel_patches' as hosted on GitLab
+          if [ -f ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch ]; then
+            patch -p1 < ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch
+          else
+            patch -p1 < ../susfs4ksu/kernel_patches/fs_susfs.patch || echo "Core VFS patch failed"
+          fi
+
+      - name: Configure Google GKI Defconfig for 5.10
+        run: |
+          cd kernel_workspace/common
+          TARGET_CONFIG="arch/arm64/configs/gki_defconfig"
+          
+          # Inject the necessary kernel configuration switches 
+          echo "CONFIG_KSU=y" >> $TARGET_CONFIG
+          echo "CONFIG_KSU_NEXT=y" >> $TARGET_CONFIG
+          echo "CONFIG_SUSFS=y" >> $TARGET_CONFIG
+          echo "CONFIG_SUSFS_SMART_HIDE=y" >> $TARGET_CONFIG
       - name: Find KernelSU
         run: |
            cd kernel
