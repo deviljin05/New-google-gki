@@ -71,20 +71,32 @@ jobs:
           cd kernel
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s stable
 
-      - name: Clone SUSFS4KSU
+      - name: Clone SUSFS
         run: |
           cd kernel
           git clone -b gki-android12-5.10 https://gitlab.com/simonpunk/susfs4ksu.git
 
-      - name: Apply KernelSU SUSFS Patch
+      - name: Add SUSFS files
         run: |
-         cd kernel/KernelSU-Next
-         patch -p1 < ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch
+          cd kernel
 
-      - name: Apply Kernel SUSFS Patch
+          cp -r susfs4ksu/kernel/fs/susfs common/fs/
+          cp susfs4ksu/kernel/include/linux/susfs.h common/include/linux/
+
+      - name: Apply SUSFS Kernel Patch
         run: |
           cd kernel/common
+
           patch -p1 < ../susfs4ksu/kernel_patches/50_add_susfs_in_kernel-5.10.patch
+
+      - name: Enable SUSFS config
+        run: |
+          cd kernel/common
+
+          echo "CONFIG_SUSFS=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_SUSFS_SUS_SU=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_SUSFS_SUS_KSTAT=y" >> arch/arm64/configs/gki_defconfig
+          
       - name: Find KernelSU
         run: |
            cd kernel
