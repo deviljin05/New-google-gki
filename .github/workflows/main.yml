@@ -76,6 +76,12 @@ jobs:
            cd kernel
            find . -type d -iname "*KernelSU*"
 
+      - name: Show tree
+        run: |
+           pwd
+           ls
+           ls kernel
+
       - name: Apply SUSFS
         run: |
          cd kernel
