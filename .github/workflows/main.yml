@@ -76,25 +76,30 @@ jobs:
            cd kernel
            find . -type d -iname "*KernelSU*"
 
-      - name: Apply SUSFS 2.2.0
+      - name: Apply SUSFS
         run: |
-          cd kernel
+         cd kernel
 
-          git clone --depth=1 -b gki-android12-5.10 https://gitlab.com/simonpunk/susfs4ksu.git susfs
+         git clone --depth=1 -b gki-android12-5.10 https://gitlab.com/simonpunk/susfs4ksu.git .susfs
+         git clone --depth=1 https://github.com/WildKernels/kernel_patches.git .kp
 
-          cp susfs/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch KernelSU-Next/
+         SUS_VER=$(grep -E '^#define SUSFS_VERSION' .susfs/kernel_patches/include/linux/susfs.h | cut -d' ' -f3 | tr -d '"')
 
-          cp susfs/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch common/
+         cp .susfs/kernel_patches/fs/* common/fs/
+         cp .susfs/kernel_patches/include/linux/* common/include/linux/
 
-          cp susfs/kernel_patches/fs/* common/fs/
+         echo "Applying KernelSU patch..."
+         patch -p1 --fuzz=3 < .susfs/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch
 
-          cp susfs/kernel_patches/include/linux/* common/include/linux/
+         echo "Applying WildKernels SUSFS fixes..."
+         for p in .kp/next/susfs_fix_patches/$SUS_VER/*.patch; do
+         echo "Applying $(basename "$p")"
+         patch -p1 --fuzz=3 < "$p"
+         done
 
-          cd KernelSU-Next
-          patch -p1 < 10_enable_susfs_for_ksu.patch
-
-          cd ../
-          patch -p1 < 50_add_susfs_in_gki-android12-5.10.patch
+         echo "Applying GKI patch..."
+         cd common
+         patch -p1 --fuzz=3 < ../.susfs/kernel_patches/50_add_susfs_in_gki-android12-5.10.patch
 
       - name: Brand Infinity X Kernel
         run: |
