@@ -87,6 +87,11 @@ jobs:
           cd kernel
           ls kernel
 
+      - name: Check patches
+        run: |
+          ls -la
+          ls -la patches
+
       - name: Apply BBRv3 patch
         run: |
           cd kernel/common
